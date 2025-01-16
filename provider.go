@@ -36,11 +36,13 @@ func (p *Provider) GetRecords(_ context.Context, zone string) ([]libdns.Record, 
 		return nil, fmt.Errorf("failed to get TXT records: %w", err)
 	}
 
+	var legitzone = strings.TrimSuffix(zone, ".")
+
 	var list []libdns.Record
 	for i := range cnameRecords {
 		list = append(list, libdns.Record{
 			Type:  "CNAME",
-			Name:  *cnameRecords[i].Name,
+			Name:  strings.TrimSuffix(*cnameRecords[i].Name, "."+legitzone),
 			Value: *cnameRecords[i].Canonical,
 		})
 	}
@@ -48,7 +50,7 @@ func (p *Provider) GetRecords(_ context.Context, zone string) ([]libdns.Record, 
 	for i := range txtRecords {
 		list = append(list, libdns.Record{
 			Type:  "TXT",
-			Name:  *txtRecords[i].Name,
+			Name:  strings.TrimSuffix(*txtRecords[i].Name, "."+legitzone),
 			Value: *txtRecords[i].Text,
 		})
 	}
@@ -76,7 +78,7 @@ func (p *Provider) AppendRecords(_ context.Context, zone string, records []libdn
 			}
 			added = append(added, libdns.Record{
 				Type:  "CNAME",
-				Name:  *record.Name,
+				Name:  strings.TrimSuffix(*record.Name, "."+legitzone),
 				Value: *record.Canonical,
 			})
 		case "TXT":
@@ -86,7 +88,7 @@ func (p *Provider) AppendRecords(_ context.Context, zone string, records []libdn
 			}
 			added = append(added, libdns.Record{
 				Type:  "TXT",
-				Name:  *record.Name,
+				Name:  strings.TrimSuffix(*record.Name, "."+legitzone),
 				Value: *record.Text,
 			})
 		}
@@ -124,7 +126,7 @@ func (p *Provider) SetRecords(_ context.Context, zone string, records []libdns.R
 			}
 			updated = append(updated, libdns.Record{
 				Type:  "CNAME",
-				Name:  *record.Name,
+				Name:  strings.TrimSuffix(*record.Name, "."+legitzone),
 				Value: *record.Canonical,
 			})
 		case "TXT":
@@ -142,7 +144,7 @@ func (p *Provider) SetRecords(_ context.Context, zone string, records []libdns.R
 			}
 			updated = append(updated, libdns.Record{
 				Type:  "TXT",
-				Name:  *record.Name,
+				Name:  strings.TrimSuffix(*record.Name, "."+legitzone),
 				Value: *record.Text,
 			})
 		}
@@ -175,7 +177,7 @@ func (p *Provider) DeleteRecords(_ context.Context, zone string, records []libdn
 			}
 			deleted = append(deleted, libdns.Record{
 				Type:  "CNAME",
-				Name:  *record.Name,
+				Name:  strings.TrimSuffix(*record.Name, "."+legitzone),
 				Value: *record.Canonical,
 			})
 		case "TXT":
@@ -189,7 +191,7 @@ func (p *Provider) DeleteRecords(_ context.Context, zone string, records []libdn
 			}
 			deleted = append(deleted, libdns.Record{
 				Type:  "TXT",
-				Name:  *record.Name,
+				Name:  strings.TrimSuffix(*record.Name, "."+legitzone),
 				Value: *record.Text,
 			})
 		}
