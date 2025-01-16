@@ -5,6 +5,7 @@ import (
 	"fmt"
 	ibclient "github.com/infobloxopen/infoblox-go-client/v2"
 	"github.com/libdns/libdns"
+	"strings"
 )
 
 // Provider facilitates DNS record manipulation with Infoblox
@@ -64,10 +65,12 @@ func (p *Provider) AppendRecords(_ context.Context, zone string, records []libdn
 		return nil, fmt.Errorf("failed to get object manager: %w", err)
 	}
 
+	var legitzone = strings.TrimSuffix(zone, ".")
+
 	for i := range records {
 		switch records[i].Type {
 		case "CNAME":
-			record, err := objMgr.CreateCNAMERecord("default", records[i].Value, records[i].Name+"."+zone, true, uint32(records[i].TTL.Seconds()), "", nil)
+			record, err := objMgr.CreateCNAMERecord("default", records[i].Value, records[i].Name+"."+legitzone, true, uint32(records[i].TTL.Seconds()), "", nil)
 			if err != nil {
 				continue
 			}
@@ -77,7 +80,7 @@ func (p *Provider) AppendRecords(_ context.Context, zone string, records []libdn
 				Value: *record.Canonical,
 			})
 		case "TXT":
-			record, err := objMgr.CreateTXTRecord("default", records[i].Name+"."+zone, records[i].Value, uint32(records[i].TTL.Seconds()), true, "", nil)
+			record, err := objMgr.CreateTXTRecord("default", records[i].Name+"."+legitzone, records[i].Value, uint32(records[i].TTL.Seconds()), true, "", nil)
 			if err != nil {
 				continue
 			}
@@ -102,12 +105,14 @@ func (p *Provider) SetRecords(_ context.Context, zone string, records []libdns.R
 		return nil, fmt.Errorf("failed to get object manager: %w", err)
 	}
 
+	var legitzone = strings.TrimSuffix(zone, ".")
+
 	for i := range records {
 		switch records[i].Type {
 		case "CNAME":
 			record, err := objMgr.GetCNAMERecord("default", "", records[i].Name)
 			if err != nil {
-				record, err = objMgr.CreateCNAMERecord("default", records[i].Value, records[i].Name+"."+zone, true, uint32(records[i].TTL.Seconds()), "", nil)
+				record, err = objMgr.CreateCNAMERecord("default", records[i].Value, records[i].Name+"."+legitzone, true, uint32(records[i].TTL.Seconds()), "", nil)
 				if err != nil {
 					continue
 				}
@@ -125,7 +130,7 @@ func (p *Provider) SetRecords(_ context.Context, zone string, records []libdns.R
 		case "TXT":
 			record, err := objMgr.GetTXTRecord("default", records[i].Name)
 			if err != nil {
-				record, err = objMgr.CreateTXTRecord("default", records[i].Name+"."+zone, records[i].Value, uint32(records[i].TTL.Seconds()), true, "", nil)
+				record, err = objMgr.CreateTXTRecord("default", records[i].Name+"."+legitzone, records[i].Value, uint32(records[i].TTL.Seconds()), true, "", nil)
 				if err != nil {
 					continue
 				}
@@ -155,10 +160,12 @@ func (p *Provider) DeleteRecords(_ context.Context, zone string, records []libdn
 		return nil, fmt.Errorf("failed to get object manager: %w", err)
 	}
 
+	var legitzone = strings.TrimSuffix(zone, ".")
+
 	for i := range records {
 		switch records[i].Type {
 		case "CNAME":
-			record, err := objMgr.GetCNAMERecord("default", "", records[i].Name)
+			record, err := objMgr.GetCNAMERecord("default", "", records[i].Name+"."+legitzone)
 			if err != nil {
 				continue
 			}
@@ -172,7 +179,7 @@ func (p *Provider) DeleteRecords(_ context.Context, zone string, records []libdn
 				Value: *record.Canonical,
 			})
 		case "TXT":
-			record, err := objMgr.GetTXTRecord("default", records[i].Name)
+			record, err := objMgr.GetTXTRecord("default", records[i].Name+"."+legitzone)
 			if err != nil {
 				continue
 			}
