@@ -23,6 +23,8 @@ func (p *Provider) GetRecords(_ context.Context, zone string) ([]libdns.Record, 
 	}
 	qp := ibclient.NewQueryParams(false, map[string]string{"name": zone})
 
+	println("GetRecords for zone: ", zone)
+
 	var cnameRecords []ibclient.RecordCNAME
 	err = conn.GetObject(&ibclient.RecordCNAME{}, "", qp, &cnameRecords)
 	if err != nil {
@@ -64,6 +66,13 @@ func (p *Provider) AppendRecords(_ context.Context, zone string, records []libdn
 		return nil, fmt.Errorf("failed to get object manager: %w", err)
 	}
 
+	println("AppendRecords for zone: ", zone)
+
+	for i := range records {
+		var record = records[i]
+		println("Type: ", record.Type, " Name: ", record.Name, " Value: ", record.Value)
+	}
+
 	for i := range records {
 		switch records[i].Type {
 		case "CNAME":
@@ -96,6 +105,13 @@ func (p *Provider) AppendRecords(_ context.Context, zone string, records []libdn
 // It returns the updated records.
 func (p *Provider) SetRecords(_ context.Context, zone string, records []libdns.Record) ([]libdns.Record, error) {
 	var updated []libdns.Record
+
+	println("SetRecords for zone: ", zone)
+
+	for i := range records {
+		var record = records[i]
+		println("Type: ", record.Type, " Name: ", record.Name, " Value: ", record.Value)
+	}
 
 	objMgr, err := p.getObjectManager()
 	if err != nil {
@@ -153,6 +169,13 @@ func (p *Provider) DeleteRecords(_ context.Context, zone string, records []libdn
 	objMgr, err := p.getObjectManager()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get object manager: %w", err)
+	}
+
+	println("DeleteRecords for zone: ", zone)
+
+	for i := range records {
+		var record = records[i]
+		println("Type: ", record.Type, " Name: ", record.Name, " Value: ", record.Value)
 	}
 
 	for i := range records {
