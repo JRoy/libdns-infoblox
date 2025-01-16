@@ -2,7 +2,7 @@ package infoblox
 
 import ibclient "github.com/infobloxopen/infoblox-go-client/v2"
 
-func (p *Provider) getObjectManager() (ibclient.IBObjectManager, error) {
+func (p *Provider) getConnector() (*ibclient.Connector, error) {
 	hostConfig := ibclient.HostConfig{
 		Scheme:  "https",
 		Host:    p.Host,
@@ -20,6 +20,15 @@ func (p *Provider) getObjectManager() (ibclient.IBObjectManager, error) {
 	requestor := &ibclient.WapiHttpRequestor{}
 
 	conn, err := ibclient.NewConnector(hostConfig, authConfig, transportConfig, requestBuilder, requestor)
+	if err != nil {
+		return nil, err
+	}
+
+	return conn, nil
+}
+
+func (p *Provider) getObjectManager() (ibclient.IBObjectManager, error) {
+	conn, err := p.getConnector()
 	if err != nil {
 		return nil, err
 	}
