@@ -67,7 +67,7 @@ func (p *Provider) AppendRecords(_ context.Context, zone string, records []libdn
 	for i := range records {
 		switch records[i].Type {
 		case "CNAME":
-			record, err := objMgr.CreateCNAMERecord("default", records[i].Value, records[i].Name, true, uint32(records[i].TTL.Seconds()), "", nil)
+			record, err := objMgr.CreateCNAMERecord("default", records[i].Value, records[i].Name+"."+zone, true, uint32(records[i].TTL.Seconds()), "", nil)
 			if err != nil {
 				continue
 			}
@@ -77,7 +77,7 @@ func (p *Provider) AppendRecords(_ context.Context, zone string, records []libdn
 				Value: *record.Canonical,
 			})
 		case "TXT":
-			record, err := objMgr.CreateTXTRecord("default", records[i].Name, records[i].Value, uint32(records[i].TTL.Seconds()), true, "", nil)
+			record, err := objMgr.CreateTXTRecord("default", records[i].Name+"."+zone, records[i].Value, uint32(records[i].TTL.Seconds()), true, "", nil)
 			if err != nil {
 				continue
 			}
@@ -107,7 +107,7 @@ func (p *Provider) SetRecords(_ context.Context, zone string, records []libdns.R
 		case "CNAME":
 			record, err := objMgr.GetCNAMERecord("default", "", records[i].Name)
 			if err != nil {
-				record, err = objMgr.CreateCNAMERecord("default", records[i].Value, records[i].Name, true, uint32(records[i].TTL.Seconds()), "", nil)
+				record, err = objMgr.CreateCNAMERecord("default", records[i].Value, records[i].Name+"."+zone, true, uint32(records[i].TTL.Seconds()), "", nil)
 				if err != nil {
 					continue
 				}
@@ -125,7 +125,7 @@ func (p *Provider) SetRecords(_ context.Context, zone string, records []libdns.R
 		case "TXT":
 			record, err := objMgr.GetTXTRecord("default", records[i].Name)
 			if err != nil {
-				record, err = objMgr.CreateTXTRecord("default", records[i].Name, records[i].Value, uint32(records[i].TTL.Seconds()), true, "", nil)
+				record, err = objMgr.CreateTXTRecord("default", records[i].Name+"."+zone, records[i].Value, uint32(records[i].TTL.Seconds()), true, "", nil)
 				if err != nil {
 					continue
 				}
