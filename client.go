@@ -17,7 +17,11 @@ func (p *Provider) getConnector() (*ibclient.Connector, error) {
 
 	transportConfig := ibclient.NewTransportConfig("false", 20, 10)
 	requestBuilder := &ibclient.WapiRequestBuilder{}
-	requestor := &ibclient.WapiHttpRequestor{}
+
+	var requestor ibclient.HttpRequestor = &ibclient.WapiHttpRequestor{}
+	if p.requestor != nil {
+		requestor = p.requestor
+	}
 
 	conn, err := ibclient.NewConnector(hostConfig, authConfig, transportConfig, requestBuilder, requestor)
 	if err != nil {

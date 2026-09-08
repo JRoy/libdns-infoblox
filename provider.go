@@ -15,6 +15,10 @@ type Provider struct {
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
 	View     string `json:"view,omitempty"`
+
+	// requestor, when non-nil, replaces the default WAPI HTTP requestor.
+	// Only tests set this, to exercise the provider without a live Grid.
+	requestor ibclient.HttpRequestor
 }
 
 // GetRecords lists all the records in the zone.
