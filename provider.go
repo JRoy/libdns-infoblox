@@ -14,6 +14,11 @@ type Provider struct {
 	Version  string `json:"version,omitempty"`
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
+	View     string `json:"view,omitempty"`
+
+	// requestor, when non-nil, replaces the default WAPI HTTP requestor.
+	// Only tests set this, to exercise the provider without a live Grid.
+	requestor ibclient.HttpRequestor
 }
 
 // GetRecords lists all the records in the zone.
@@ -74,7 +79,7 @@ func (p *Provider) AppendRecords(_ context.Context, zone string, records []libdn
 		var recRR = rec.RR()
 		switch recRR.Type {
 		case "CNAME":
-			record, err := objMgr.CreateCNAMERecord("default", recRR.Data, recRR.Name+"."+legitzone, true, uint32(recRR.TTL.Seconds()), "", nil)
+			record, err := objMgr.CreateCNAMERecord(p.view(), recRR.Data, recRR.Name+"."+legitzone, true, uint32(recRR.TTL.Seconds()), "", nil)
 			if err != nil {
 				continue
 			}
@@ -84,7 +89,7 @@ func (p *Provider) AppendRecords(_ context.Context, zone string, records []libdn
 				Data: *record.Canonical,
 			})
 		case "TXT":
-			record, err := objMgr.CreateTXTRecord("default", recRR.Name+"."+legitzone, recRR.Data, uint32(recRR.TTL.Seconds()), true, "", nil)
+			record, err := objMgr.CreateTXTRecord(p.view(), recRR.Name+"."+legitzone, recRR.Data, uint32(recRR.TTL.Seconds()), true, "", nil)
 			if err != nil {
 				continue
 			}
@@ -116,9 +121,9 @@ func (p *Provider) SetRecords(_ context.Context, zone string, records []libdns.R
 		var recRR = rec.RR()
 		switch recRR.Type {
 		case "CNAME":
-			record, err := objMgr.GetCNAMERecord("default", "", recRR.Name)
+			record, err := objMgr.GetCNAMERecord(p.view(), "", recRR.Name+"."+legitzone)
 			if err != nil {
-				record, err = objMgr.CreateCNAMERecord("default", recRR.Data, recRR.Name+"."+legitzone, true, uint32(recRR.TTL.Seconds()), "", nil)
+				record, err = objMgr.CreateCNAMERecord(p.view(), recRR.Data, recRR.Name+"."+legitzone, true, uint32(recRR.TTL.Seconds()), "", nil)
 				if err != nil {
 					continue
 				}
@@ -134,9 +139,9 @@ func (p *Provider) SetRecords(_ context.Context, zone string, records []libdns.R
 				Data: *record.Canonical,
 			})
 		case "TXT":
-			record, err := objMgr.GetTXTRecord("default", recRR.Name)
+			record, err := objMgr.GetTXTRecord(p.view(), recRR.Name+"."+legitzone)
 			if err != nil {
-				record, err = objMgr.CreateTXTRecord("default", recRR.Name+"."+legitzone, recRR.Data, uint32(recRR.TTL.Seconds()), true, "", nil)
+				record, err = objMgr.CreateTXTRecord(p.view(), recRR.Name+"."+legitzone, recRR.Data, uint32(recRR.TTL.Seconds()), true, "", nil)
 				if err != nil {
 					continue
 				}
@@ -173,7 +178,7 @@ func (p *Provider) DeleteRecords(_ context.Context, zone string, records []libdn
 		var recRR = rec.RR()
 		switch recRR.Type {
 		case "CNAME":
-			record, err := objMgr.GetCNAMERecord("default", "", recRR.Name+"."+legitzone)
+			record, err := objMgr.GetCNAMERecord(p.view(), "", recRR.Name+"."+legitzone)
 			if err != nil {
 				continue
 			}
@@ -187,7 +192,7 @@ func (p *Provider) DeleteRecords(_ context.Context, zone string, records []libdn
 				Data: *record.Canonical,
 			})
 		case "TXT":
-			record, err := objMgr.GetTXTRecord("default", recRR.Name+"."+legitzone)
+			record, err := objMgr.GetTXTRecord(p.view(), recRR.Name+"."+legitzone)
 			if err != nil {
 				continue
 			}
@@ -204,6 +209,14 @@ func (p *Provider) DeleteRecords(_ context.Context, zone string, records []libdn
 	}
 
 	return deleted, nil
+}
+
+// view returns the configured Infoblox network view, defaulting to "default".
+func (p *Provider) view() string {
+	if p.View != "" {
+		return p.View
+	}
+	return "default"
 }
 
 // Interface guards

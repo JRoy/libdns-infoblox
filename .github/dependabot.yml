@@ -1,0 +1,21 @@
+version: 2
+updates:
+  # Go module dependencies — keeps libdns and infoblox-go-client current.
+  # Grouped so it lands as one PR per week instead of a swarm.
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      go-modules:
+        patterns: ["*"]
+
+  # Keep the workflow actions above pinned to current major versions.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns: ["*"]
